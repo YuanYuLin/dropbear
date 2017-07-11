@@ -1,0 +1,7 @@
+{
+"COMMON":
+[
+{"enabled":1, "name": "0000-svr-authpubkey.c.patch"},
+{"enabled":0, "name": ""}
+]
+}

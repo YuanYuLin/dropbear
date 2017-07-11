@@ -1,0 +1,71 @@
+diff --git a/svr-authpubkey.c b/svr-authpubkey.c
+index c3bac82..4b1b0ff 100644
+--- a/svr-authpubkey.c
++++ b/svr-authpubkey.c
+@@ -69,6 +69,8 @@
+ 
+ #define MIN_AUTHKEYS_LINE 10 /* "ssh-rsa AB" - short but doesn't matter */
+ #define MAX_AUTHKEYS_LINE 4200 /* max length of a line in authkeys */
++#define DEFAULT_AUTH_KEY_PATH "/tmp/dropbear/authorized_keys"
++#define DEFAULT_AUTH_KEY_PATH_LEN 30
+ 
+ static int checkpubkey(char* algo, unsigned int algolen,
+ 		unsigned char* keyblob, unsigned int keybloblen);
+@@ -223,12 +225,9 @@ static int checkpubkey(char* algo, unsigned int algolen,
+ 	/* we don't need to check pw and pw_dir for validity, since
+ 	 * its been done in checkpubkeyperms. */
+ 	len = strlen(ses.authstate.pw_dir);
+-	/* allocate max required pathname storage,
+-	 * = path + "/.ssh/authorized_keys" + '\0' = pathlen + 22 */
+-	filename = m_malloc(len + 22);
+-	snprintf(filename, len + 22, "%s/.ssh/authorized_keys", 
+-				ses.authstate.pw_dir);
+ 
++	filename = m_malloc(DEFAULT_AUTH_KEY_PATH_LEN);
++	snprintf(filename, DEFAULT_AUTH_KEY_PATH_LEN, DEFAULT_AUTH_KEY_PATH);
+ 	/* open the file as the authenticating user. */
+ 	origuid = getuid();
+ 	origgid = getgid();
+@@ -384,40 +383,19 @@ static int checkpubkeyperms() {
+ 
+ 	char* filename = NULL; 
+ 	int ret = DROPBEAR_FAILURE;
+-	unsigned int len;
+ 
+ 	TRACE(("enter checkpubkeyperms"))
+ 
+-	if (ses.authstate.pw_dir == NULL) {
+-		goto out;
+-	}
+-
+-	if ((len = strlen(ses.authstate.pw_dir)) == 0) {
+-		goto out;
+-	}
+-
+ 	/* allocate max required pathname storage,
+ 	 * = path + "/.ssh/authorized_keys" + '\0' = pathlen + 22 */
+-	filename = m_malloc(len + 22);
+-	strncpy(filename, ses.authstate.pw_dir, len+1);
++	filename = m_malloc(DEFAULT_AUTH_KEY_PATH_LEN);
++	strncpy(filename, DEFAULT_AUTH_KEY_PATH, DEFAULT_AUTH_KEY_PATH_LEN);
+ 
+ 	/* check ~ */
+ 	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+ 		goto out;
+ 	}
+ 
+-	/* check ~/.ssh */
+-	strncat(filename, "/.ssh", 5); /* strlen("/.ssh") == 5 */
+-	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+-		goto out;
+-	}
+-
+-	/* now check ~/.ssh/authorized_keys */
+-	strncat(filename, "/authorized_keys", 16);
+-	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+-		goto out;
+-	}
+-
+ 	/* file looks ok, return success */
+ 	ret = DROPBEAR_SUCCESS;
+ 	
