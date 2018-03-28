@@ -9,28 +9,53 @@ output_dir = ""
 tarball_pkg = ""
 tarball_dir = ""
 install_dir = ""
+install_tmp_dir = ""
 dst_bin_dir = ""
+cc_host = ""
 
 def set_global(args):
     global pkg_path
     global output_dir
     global tarball_pkg
     global install_dir
+    global install_tmp_dir
     global tarball_dir
     global dst_bin_dir
+    global cc_host
     pkg_path = args["pkg_path"]
     output_dir = args["output_path"]
     tarball_pkg = ops.path_join(pkg_path, TARBALL_FILE)
     install_dir = ops.path_join(output_dir, INSTALL_DIR)
+    install_tmp_dir = ops.path_join(output_dir, INSTALL_DIR + "-tmp")
     tarball_dir = ops.path_join(output_dir, TARBALL_DIR)
     dst_bin_dir = ops.path_join(install_dir, "bin")
+    cc_host_str = ops.getEnv("CROSS_COMPILE")
+    cc_host = cc_host_str[:len(cc_host_str) - 1]
+
 
 def MAIN_ENV(args):
     set_global(args)
 
     ops.exportEnv(ops.setEnv("CC", ops.getEnv("CROSS_COMPILE") + "gcc"))
-    #ops.exportEnv(ops.setEnv("CROSS", ops.getEnv("CROSS_COMPILE")))
-    #ops.exportEnv(ops.setEnv("DESTDIR", install_dir))
+    ops.exportEnv(ops.setEnv("CXX", ops.getEnv("CROSS_COMPILE") + "g++"))
+    ops.exportEnv(ops.setEnv("CROSS", ops.getEnv("CROSS_COMPILE")))
+    ops.exportEnv(ops.setEnv("DESTDIR", install_tmp_dir))
+
+    cc_sysroot = ops.getEnv("CC_SYSROOT")
+
+    cflags = ""
+    cflags += " -I" + ops.path_join(cc_sysroot, 'usr/include')
+    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include')
+    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include/libz')
+
+    ldflags = ""
+    ldflags += " -L" + ops.path_join(cc_sysroot, 'lib')
+    ldflags += " -L" + ops.path_join(cc_sysroot, 'usr/lib')
+    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'lib')
+    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'usr/lib')
+
+    ops.exportEnv(ops.setEnv("LDFLAGS", ldflags))
+    ops.exportEnv(ops.setEnv("CFLAGS", cflags))
 
     return False
 
@@ -57,10 +82,11 @@ def MAIN_CONFIGURE(args):
     env_conf = None
 
     extra_conf = []
-    extra_conf.append("--host=x86_64")
+    #extra_conf.append("--host=x86_64")
+    extra_conf.append("--host=" + cc_host)
     extra_conf.append("--build=armel")
-    extra_conf.append("--with-zlib=" + iopc.getDevPkgPath("libz"))
-    extra_conf.append("--prefix=" + install_dir)
+    #extra_conf.append("--with-zlib=" + ops.path_join(iopc.getSdkPath, "libz"))
+    #extra_conf.append("--prefix=" + install_dir)
     extra_conf.append("--disable-loginfunc")
     extra_conf.append("--disable-shadow")
     extra_conf.append("--disable-lastlog")
@@ -72,24 +98,30 @@ def MAIN_BUILD(args):
     set_global(args)
 
     ops.mkdir(install_dir)
+    ops.mkdir(install_tmp_dir)
 
     extra_conf = []
     extra_conf.append("MULTI=1")
-    iopc.make_install(tarball_dir, extra_conf)
 
-    ops.mkdir(dst_bin_dir)
-    ops.copyto(ops.path_join(tarball_dir, "dropbearmulti"), dst_bin_dir)
-    ops.ln(dst_bin_dir, "dropbearmulti", "dbclient")
-    ops.ln(dst_bin_dir, "dropbearmulti", "dropbearconvert")
-    ops.ln(dst_bin_dir, "dropbearmulti", "dropbearkey")
-    ops.ln(dst_bin_dir, "dropbearmulti", "dropbear")
+    iopc.make(tarball_dir, extra_conf)
+    iopc.make_install(tarball_dir, extra_conf)
 
     return False
 
 def MAIN_INSTALL(args):
     set_global(args)
 
-    iopc.installBin(args["pkg_name"], ops.path_join(dst_bin_dir, "."), "bin")
+    ops.mkdir(install_dir)
+
+    ops.mkdir(ops.path_join(install_dir, "bin"))
+
+    ops.copyto(ops.path_join(install_tmp_dir, "usr/local/bin/dropbearmulti"), ops.path_join(install_dir, "bin"))
+    ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dbclient")
+    ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbearconvert")
+    ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbearkey")
+    ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbear")
+
+    iopc.installBin(args["pkg_name"], ops.path_join(install_dir, "bin/."), "bin")
 
     return False
 
