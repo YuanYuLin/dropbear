@@ -54,8 +54,8 @@ def MAIN_ENV(args):
     ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'lib')
     ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'usr/lib')
 
-    ops.exportEnv(ops.setEnv("LDFLAGS", ldflags))
-    ops.exportEnv(ops.setEnv("CFLAGS", cflags))
+    #ops.exportEnv(ops.setEnv("LDFLAGS", ldflags))
+    #ops.exportEnv(ops.setEnv("CFLAGS", cflags))
 
     return False
 
@@ -81,6 +81,19 @@ def MAIN_CONFIGURE(args):
 
     env_conf = None
 
+    cc_sysroot = ops.getEnv("CC_SYSROOT")
+
+    cflags = ""
+    cflags += " -I" + ops.path_join(cc_sysroot, 'usr/include')
+    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include')
+    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include/libz')
+
+    ldflags = ""
+    ldflags += " -L" + ops.path_join(cc_sysroot, 'lib')
+    ldflags += " -L" + ops.path_join(cc_sysroot, 'usr/lib')
+    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'lib')
+    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'usr/lib')
+
     extra_conf = []
     #extra_conf.append("--host=x86_64")
     extra_conf.append("--host=" + cc_host)
@@ -90,6 +103,9 @@ def MAIN_CONFIGURE(args):
     extra_conf.append("--disable-loginfunc")
     extra_conf.append("--disable-shadow")
     extra_conf.append("--disable-lastlog")
+    extra_conf.append("--enable-largefile")
+    extra_conf.append("CFLAGS=" + cflags)
+    extra_conf.append("LDFLAGS=" + ldflags)
     iopc.configure(tarball_dir, extra_conf, env_conf, False)
 
     return True
@@ -101,7 +117,9 @@ def MAIN_BUILD(args):
     ops.mkdir(install_tmp_dir)
 
     extra_conf = []
+    #extra_conf.append("PROGRAMS=\"dropbear dbclient dropbearkey dropbearconvert scp\"")
     extra_conf.append("MULTI=1")
+    #extra_conf.append("SCPPROGRESS=1")
 
     iopc.make(tarball_dir, extra_conf)
     iopc.make_install(tarball_dir, extra_conf)
@@ -120,6 +138,7 @@ def MAIN_INSTALL(args):
     ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbearconvert")
     ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbearkey")
     ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "dropbear")
+    ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "scp")
 
     iopc.installBin(args["pkg_name"], ops.path_join(install_dir, "bin/."), "bin")
 
