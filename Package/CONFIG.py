@@ -41,19 +41,6 @@ def MAIN_ENV(args):
     ops.exportEnv(ops.setEnv("CROSS", ops.getEnv("CROSS_COMPILE")))
     ops.exportEnv(ops.setEnv("DESTDIR", install_tmp_dir))
 
-    cc_sysroot = ops.getEnv("CC_SYSROOT")
-
-    cflags = ""
-    cflags += " -I" + ops.path_join(cc_sysroot, 'usr/include')
-    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include')
-    cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include/libz')
-
-    ldflags = ""
-    ldflags += " -L" + ops.path_join(cc_sysroot, 'lib')
-    ldflags += " -L" + ops.path_join(cc_sysroot, 'usr/lib')
-    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'lib')
-    ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'usr/lib')
-
     #ops.exportEnv(ops.setEnv("LDFLAGS", ldflags))
     #ops.exportEnv(ops.setEnv("CFLAGS", cflags))
 
@@ -97,7 +84,7 @@ def MAIN_CONFIGURE(args):
     extra_conf = []
     #extra_conf.append("--host=x86_64")
     extra_conf.append("--host=" + cc_host)
-    extra_conf.append("--build=armel")
+    #extra_conf.append("--build=armel")
     #extra_conf.append("--with-zlib=" + ops.path_join(iopc.getSdkPath, "libz"))
     #extra_conf.append("--prefix=" + install_dir)
     extra_conf.append("--disable-loginfunc")
