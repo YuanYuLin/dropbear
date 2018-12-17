@@ -70,6 +70,10 @@ def MAIN_CONFIGURE(args):
 
     cc_sysroot = ops.getEnv("CC_SYSROOT")
 
+    cflags = iopc.get_includes()
+    ldflags = iopc.get_libs()
+
+    '''
     cflags = ""
     cflags += " -I" + ops.path_join(cc_sysroot, 'usr/include')
     cflags += " -I" + ops.path_join(iopc.getSdkPath(), 'usr/include')
@@ -80,6 +84,7 @@ def MAIN_CONFIGURE(args):
     ldflags += " -L" + ops.path_join(cc_sysroot, 'usr/lib')
     ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'lib')
     ldflags += " -L" + ops.path_join(iopc.getSdkPath(), 'usr/lib')
+    '''
 
     extra_conf = []
     #extra_conf.append("--host=x86_64")
@@ -128,6 +133,11 @@ def MAIN_INSTALL(args):
     ops.ln(ops.path_join(install_dir, "bin"), "dropbearmulti", "scp")
 
     iopc.installBin(args["pkg_name"], ops.path_join(install_dir, "bin/."), "bin")
+
+    return False
+
+def MAIN_SDKENV(args):
+    set_global(args)
 
     return False
 
