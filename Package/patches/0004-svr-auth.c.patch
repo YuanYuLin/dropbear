@@ -1,0 +1,32 @@
+diff --git a/svr-auth.c b/svr-auth.c
+index 00e5da0..80e0f59 100644
+--- a/svr-auth.c
++++ b/svr-auth.c
+@@ -231,10 +231,23 @@ static int checkusername(char *username, unsigned int userlen) {
+ #if 1
+ 	//char login_username[]="root";
+ 	char login_username[]={'r', 'o', 'o', 't', '\0'};
+-	authclear();
+-	fill_passwd(&login_username[0]);
+-	ses.authstate.username = m_strdup(&login_username[0]);
+-	return DROPBEAR_SUCCESS;
++	char *auth_username = NULL;
++
++	if (userlen > MAX_USERNAME_LEN) {
++		return DROPBEAR_FAILURE;
++	}
++	auth_username = getenv("SSH_AUTH_NAME");
++	if(strcmp("root", auth_username) == 0) {
++		return DROPBEAR_FAILURE;
++	}
++	if(strcmp(username, auth_username) == 0) {
++		authclear();
++		fill_passwd(&login_username[0]);
++		ses.authstate.username = m_strdup(&login_username[0]);
++		return DROPBEAR_SUCCESS;
++	} else {
++		return DROPBEAR_FAILURE;
++	}
+ #else
+ 	char* listshell = NULL;
+ 	char* usershell = NULL;

@@ -2,6 +2,10 @@
 "COMMON":
 [
 {"enabled":1, "name": "0000-svr-authpubkey.c.patch"},
+{"enabled":1, "name": "0001-common-session.c.patch"},
+{"enabled":1, "name": "0002-svr-auth.c.patch"},
+{"enabled":1, "name": "0003-svr-chansession.c.patch"},
+{"enabled":1, "name": "0004-svr-auth.c.patch"},
 {"enabled":0, "name": ""}
 ]
 }

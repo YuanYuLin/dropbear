@@ -1,0 +1,37 @@
+diff --git a/common-session.c b/common-session.c
+index 9d586c0..7707fb1 100644
+--- a/common-session.c
++++ b/common-session.c
+@@ -584,7 +584,7 @@ const char* get_user_shell() {
+ 	}
+ }
+ void fill_passwd(const char* username) {
+-	struct passwd *pw = NULL;
++//	struct passwd *pw = NULL;
+ 	if (ses.authstate.pw_name)
+ 		m_free(ses.authstate.pw_name);
+ 	if (ses.authstate.pw_dir)
+@@ -593,7 +593,14 @@ void fill_passwd(const char* username) {
+ 		m_free(ses.authstate.pw_shell);
+ 	if (ses.authstate.pw_passwd)
+ 		m_free(ses.authstate.pw_passwd);
+-
++#if 1
++	ses.authstate.pw_uid =  0;
++	ses.authstate.pw_gid = 0;
++	ses.authstate.pw_name = m_strdup("root");
++	ses.authstate.pw_dir = m_strdup("/root");
++	ses.authstate.pw_shell = m_strdup("/bin/sh");
++	ses.authstate.pw_passwd = m_strdup("");
++#else
+ 	pw = getpwnam(username);
+ 	if (!pw) {
+ 		return;
+@@ -618,6 +625,7 @@ void fill_passwd(const char* username) {
+ 		}
+ 		ses.authstate.pw_passwd = m_strdup(passwd_crypt);
+ 	}
++#endif
+ }
+ 
+ /* Called when channels are modified */

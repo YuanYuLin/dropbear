@@ -1,0 +1,20 @@
+diff --git a/svr-chansession.c b/svr-chansession.c
+index bfaf7f6..575dee3 100644
+--- a/svr-chansession.c
++++ b/svr-chansession.c
+@@ -920,6 +920,7 @@ static void execchild(void *user_data) {
+ #endif /* DEBUG_VALGRIND */
+ 
+ 	/* We can only change uid/gid as root ... */
++#if 0
+ 	if (getuid() == 0) {
+ 
+ 		if ((setgid(ses.authstate.pw_gid) < 0) ||
+@@ -942,6 +943,7 @@ static void execchild(void *user_data) {
+ 			dropbear_exit("Couldn't	change user as non-root");
+ 		}
+ 	}
++#endif
+ 
+ 	/* set env vars */
+ 	addnewvar("USER", ses.authstate.pw_name);
